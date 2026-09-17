@@ -696,7 +696,7 @@ const CATNAME = Object.fromEntries(CATS.map(c => [c.k, c.n]));
 const LVLNAME = { 1:"Easy", 2:"Medium", 3:"Hard" };
 const K_STATS = "ib400-stats-v2", K_OLDSTATS = "ib400-stats-v1",
       K_FLAGS = "ib400-flags-v1", K_DAYS = "ib400-days-v1", K_THEME = "ib400-theme",
-      K_RESUME = "ib400-resume-v1", K_NAME = "ib400-name";
+      K_RESUME = "ib400-resume-v1", K_NAME = "ib400-name", K_SETS = "ib400-sets-v1";
 
 const LOGO = `<svg width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Drill 400">
   <rect x=".75" y=".75" width="46.5" height="46.5" rx="11.5" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.5"/>
@@ -716,30 +716,69 @@ const today = () => new Date().toISOString().slice(0, 10);
 const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
 const byOrd = Object.fromEntries(QUESTIONS.map(q => [q.ord, q]));
 
-/* ---------------------------- challenges ----------------------------
-   A challenge is a whole set encoded into the URL hash: the sender's name,
-   their score, and the exact question list. No server involved — the link
-   carries everything the other phone needs to play the identical set. */
+/* ---------------------------- multiplayer ----------------------------
+   Two link types, both carrying the whole set in the URL hash so there is
+   no server involved:
+     #m=name~ords              an invite — nobody has played it yet
+     #c=name~right~total~ords  a result — the sender's score on that set
+   Your own score for each set is kept locally, so when a result link comes
+   back for a set you have already played, the comparison is immediate. */
 const b36 = n => n.toString(36).padStart(3, "0");
-function makeChallengeLink() {
-  const ords = S.log.map(e => byId[e.id]).filter(Boolean).map(q => b36(q.ord)).join("");
-  const right = S.log.filter(e => e.correct).length;
-  const payload = [S.name || "", right, S.log.length, ords].join("~");
-  return location.href.split("#")[0] + "#c=" + encodeURIComponent(payload);
+const encodeDeck = deck => deck.map(q => b36(q.ord)).join("");
+function decodeDeck(ords) {
+  const deck = [];
+  for (let i = 0; i + 3 <= ords.length; i += 3) {
+    const q = byOrd[parseInt(ords.slice(i, i + 3), 36)];
+    if (q) deck.push(q);
+  }
+  return deck;
 }
-function readChallenge() {
-  const m = /^#c=(.+)$/.exec(location.hash);
-  if (!m) return null;
+function setKey(ords) {
+  let h = 2166136261;
+  for (let i = 0; i < ords.length; i++) { h ^= ords.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+const myResults = () => ls.get(K_SETS, {});
+function saveMyResult(key, right, total) {
+  if (!key) return;
+  const all = myResults();
+  all[key] = { right, total, at: Date.now() };
+  ls.set(K_SETS, all);
+}
+const base = () => location.href.split("#")[0];
+
+/* An invite for a set that has not been played yet. */
+function makeInviteLink(deck) {
+  return base() + "#m=" + encodeURIComponent([S.name || "", encodeDeck(deck)].join("~"));
+}
+/* A result for the set just played. */
+function makeChallengeLink() {
+  const deck = S.log.map(e => byId[e.id]).filter(Boolean);
+  const right = S.log.filter(e => e.correct).length;
+  return base() + "#c=" + encodeURIComponent([S.name || "", right, S.log.length, encodeDeck(deck)].join("~"));
+}
+
+function readLink() {
+  const h = location.hash;
   try {
-    const [name, right, total, ords] = decodeURIComponent(m[1]).split("~");
-    const deck = [];
-    for (let i = 0; i + 3 <= ords.length; i += 3) {
-      const q = byOrd[parseInt(ords.slice(i, i + 3), 36)];
-      if (q) deck.push(q);
+    let m = /^#m=(.+)$/.exec(h);
+    if (m) {
+      const [name, ords] = decodeURIComponent(m[1]).split("~");
+      const deck = decodeDeck(ords || "");
+      if (!deck.length) return null;
+      return { kind: "invite", name: (name || "").trim() || "Your friend", deck, key: setKey(ords) };
     }
-    if (!deck.length) return null;
-    return { name: (name || "").trim() || "Your friend", right: +right || 0, total: +total || deck.length, deck };
+    m = /^#c=(.+)$/.exec(h);
+    if (m) {
+      const [name, right, total, ords] = decodeURIComponent(m[1]).split("~");
+      const deck = decodeDeck(ords || "");
+      if (!deck.length) return null;
+      const key = setKey(ords);
+      return { kind: "result", name: (name || "").trim() || "Your friend",
+               right: +right || 0, total: +total || deck.length, deck, key, mine: myResults()[key] || null };
+    }
   } catch { return null; }
+  return null;
 }
 
 /* Stats used to be keyed by array index. Ids are now hashed from the question
@@ -766,6 +805,7 @@ const S = {
   theme: ls.get(K_THEME, null),
   deck: [], idx: 0, log: [], startedAt: 0, openRev: null,
   name: ls.get(K_NAME, ""), chal: null, chalActive: null, shareOpen: false, shareMsg: "",
+  setKey: null, mpOpen: false, mpMsg: "", mpLink: "", invite: null,
   picked: null,
 };
 
@@ -816,6 +856,40 @@ function pool() {
 }
 
 /* ================================ HOME ================================ */
+function inviteCard() {
+  const c = S.chal;
+  if (!c) return "";
+  if (c.kind === "invite") {
+    return `<div class="resume">
+      <p><b>${esc(c.name)} invited you to a set.</b> ${c.deck.length} question${c.deck.length === 1 ? "" : "s"}, the same ones in the same order for both of you.</p>
+      <div class="row"><button class="btn pri" id="acceptchal">Start the set</button><button class="btn" id="skipchal">Not now</button></div>
+    </div>`;
+  }
+  // a result came back
+  if (c.mine) {
+    const myPct = c.mine.total ? c.mine.right / c.mine.total : 0;
+    const theirPct = c.total ? c.right / c.total : 0;
+    const iWin = myPct > theirPct, tie = myPct === theirPct;
+    return `<div class="resume">
+      <p><b>${esc(c.name)} finished your set.</b></p>
+      <div class="vs" style="margin-top:12px">
+        <div class="side ${iWin ? "win" : ""}"><b>${c.mine.right}/${c.mine.total}</b><small>YOU</small></div>
+        <div class="sep">vs</div>
+        <div class="side ${!iWin && !tie ? "win" : ""}"><b>${c.right}/${c.total}</b><small>${esc(c.name.toUpperCase())}</small></div>
+      </div>
+      <div class="verdictline" style="margin:4px 0 14px;color:var(--${iWin ? "good" : tie ? "brass" : "bad"})">
+        ${iWin ? "You win." : tie ? "Dead heat." : esc(c.name) + " takes it."}
+      </div>
+      <button class="btn" id="skipchal">Done</button>
+    </div>`;
+  }
+  return `<div class="resume">
+    <p><b>${esc(c.name)} challenged you.</b> ${c.right} of ${c.total} on this set of ${c.deck.length}. Same questions, same order.</p>
+    <div class="row"><button class="btn pri" id="acceptchal">Take the challenge</button><button class="btn" id="skipchal">Not now</button></div>
+  </div>`;
+}
+
+
 function renderHome() {
   const p = pool(), wk = weakIds().length, fl = [...S.flags].filter(id => byId[id]).length;
   const n = S.len === 0 ? p.length : Math.min(S.len, p.length);
@@ -847,10 +921,7 @@ function renderHome() {
       <div class="lede">${QUESTIONS.length} investment banking interview questions. Every one is multiple choice, and every answer is explained.</div>
     </header>
 
-    ${S.chal ? `<div class="resume">
-      <p><b>${esc(S.chal.name)} challenged you.</b> ${S.chal.right} of ${S.chal.total} on this set of ${S.chal.deck.length}. Same questions, same order.</p>
-      <div class="row"><button class="btn pri" id="acceptchal">Take the challenge</button><button class="btn" id="skipchal">Not now</button></div>
-    </div>` : ""}
+    ${inviteCard()}
 
     ${saved ? `<div class="resume">
       <p><b>Unfinished set.</b> You were ${saved.idx + 1} of ${saved.deck.length} through ${esc(saved.catName)}.</p>
@@ -885,6 +956,18 @@ function renderHome() {
     </button>
     ${p.length ? `<div class="note">${p.length} available in this selection</div>` : ""}
 
+    ${p.length ? `
+      ${S.mpOpen ? `<div class="share" style="margin-top:18px">
+        <p><b>Multiplayer.</b> Send this link to anyone. They get this exact set, same questions, same order — then you can compare scores.</p>
+        <input type="text" id="mpnm" placeholder="Your name" value="${esc(S.name)}" maxlength="18" autocomplete="off"/>
+        <div class="row">
+          <button class="btn pri" id="mpsend">${navigator.share ? "Create & share link" : "Create & copy link"}</button>
+          <button class="btn" id="mpclose">Close</button>
+        </div>
+        ${S.mpMsg ? `<p style="margin:10px 0 0;color:var(--brass)">${esc(S.mpMsg)}</p>` : ""}
+        ${S.mpLink ? `<input type="text" id="mplink" readonly value="${esc(S.mpLink)}" style="margin-top:10px"/>` : ""}
+      </div>` : `<button class="btn" id="multiplayer" style="margin-top:10px">Multiplayer</button>`}
+    ` : ""}
 `;
 
   document.querySelectorAll("#home .topic").forEach(b => b.onclick = () => { S.cat = b.dataset.cat; renderHome(); });
@@ -892,6 +975,28 @@ function renderHome() {
     S[g.dataset.seg] = Number(b.dataset.v); renderHome();
   }));
   const stB = document.getElementById("start"); if (stB) stB.onclick = () => start();
+  const mp = document.getElementById("multiplayer");
+  if (mp) mp.onclick = () => { S.mpOpen = true; S.mpMsg = ""; S.mpLink = ""; renderHome(); };
+  const mpc = document.getElementById("mpclose");
+  if (mpc) mpc.onclick = () => { S.mpOpen = false; S.mpLink = ""; renderHome(); };
+  const mps = document.getElementById("mpsend");
+  if (mps) mps.onclick = async () => {
+    S.name = (document.getElementById("mpnm").value || "").trim().slice(0, 18);
+    ls.set(K_NAME, S.name);
+    const pl = pool(); if (!pl.length) return;
+    const deck = shuffle(pl).slice(0, S.len === 0 ? pl.length : Math.min(S.len, pl.length));
+    const url = makeInviteLink(deck);
+    S.invite = { deck, key: setKey(encodeDeck(deck)) };
+    const text = `${S.name || "Someone"} sent you a Drill 400 set — ${deck.length} questions. Same ones for both of us.`;
+    try {
+      if (navigator.share) { await navigator.share({ title: "Drill 400", text, url }); S.mpMsg = "Link sent. Play the same set below."; }
+      else { await navigator.clipboard.writeText(url); S.mpMsg = "Link copied. Send it, then play the same set below."; }
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      S.mpMsg = "Copy this link:"; S.mpLink = url;
+    }
+    renderHome();
+  };
   document.getElementById("theme").onclick = toggleTheme;
   const ac = document.getElementById("acceptchal"); if (ac) ac.onclick = startChallenge;
   const sc = document.getElementById("skipchal");
@@ -902,22 +1007,28 @@ function renderHome() {
 
 /* ================================ QUIZ ================================ */
 function start() {
-  const p = pool(); if (!p.length) return;
-  S.deck = shuffle(p).slice(0, S.len === 0 ? p.length : Math.min(S.len, p.length));
+  if (S.invite) {                       // play the set you just shared
+    S.deck = S.invite.deck; S.setKey = S.invite.key; S.invite = null; S.mpOpen = false;
+  } else {
+    const p = pool(); if (!p.length) return;
+    S.deck = shuffle(p).slice(0, S.len === 0 ? p.length : Math.min(S.len, p.length));
+    S.setKey = setKey(encodeDeck(S.deck));
+  }
   S.idx = 0; S.log = []; S.chalActive = null; S.startedAt = Date.now();
   resetQ(); saveResume(); show("quiz"); renderQuiz();
 }
 function startChallenge() {
   const c = S.chal; if (!c) return;
-  S.deck = c.deck; S.idx = 0; S.log = [];
-  S.chalActive = { name: c.name, right: c.right, total: c.total };
-  S.startedAt = Date.now(); S.chal = null;
+  S.deck = c.deck; S.idx = 0; S.log = []; S.setKey = c.key;
+  // An invite carries no score yet, so there is nothing to compare against.
+  S.chalActive = c.kind === "result" ? { name: c.name, right: c.right, total: c.total } : null;
+  S.startedAt = Date.now(); S.chal = null; S.mpOpen = false; S.invite = null;
   try { history.replaceState(null, "", location.pathname + location.search); } catch {}
   resetQ(); saveResume(); show("quiz"); renderQuiz();
 }
 function saveResume() {
   if (S.idx >= S.deck.length) { ls.del(K_RESUME); return; }
-  ls.set(K_RESUME, { deck: S.deck.map(q => q.id), idx: S.idx, log: S.log, startedAt: S.startedAt, chal: S.chalActive,
+  ls.set(K_RESUME, { deck: S.deck.map(q => q.id), idx: S.idx, log: S.log, startedAt: S.startedAt, chal: S.chalActive, setKey: S.setKey,
                      catName: S.cat === "all" ? "Everything" : S.cat === "weak" ? "Ones you missed"
                             : S.cat === "flag" ? "Flagged" : CATNAME[S.cat] || "a set" });
 }
@@ -925,7 +1036,7 @@ function resume() {
   const r = ls.get(K_RESUME, null); if (!r) return;
   const deck = r.deck.map(id => byId[id]).filter(Boolean);
   if (!deck.length) { ls.del(K_RESUME); renderHome(); return; }
-  S.deck = deck; S.idx = Math.min(r.idx, deck.length - 1); S.log = r.log || []; S.chalActive = r.chal || null;
+  S.deck = deck; S.idx = Math.min(r.idx, deck.length - 1); S.log = r.log || []; S.chalActive = r.chal || null; S.setKey = r.setKey || null;
   S.startedAt = r.startedAt || Date.now();
   resetQ(); show("quiz"); renderQuiz();
 }
@@ -1004,6 +1115,7 @@ function renderResult() {
   const by = {};
   S.log.forEach(e => { (by[e.cat] = by[e.cat] || { r: 0, t: 0 }).t++; if (e.correct) by[e.cat].r++; });
   const rows = Object.entries(by).sort((a, b) => a[1].r / a[1].t - b[1].r / b[1].t);
+  saveMyResult(S.setKey, right, S.log.length);
   const elapsed = S.startedAt ? Date.now() - S.startedAt : 0;
   const perQ = S.log.length && elapsed ? Math.round(elapsed / S.log.length / 1000) : 0;
 
@@ -1091,14 +1203,14 @@ function renderResult() {
 /* A challenge link tapped while the app is already open changes only the hash,
    which does not reload the page — so pick it up explicitly. */
 window.addEventListener("hashchange", () => {
-  const c = readChallenge();
+  const c = readLink();
   if (!c) return;
   S.chal = c; S.shareOpen = false;
   show("home"); renderHome(); window.scrollTo(0, 0);
 });
 
 applyTheme();
-S.chal = readChallenge();
+S.chal = readLink();
 renderHome();
 
 </script>
