@@ -1,21 +1,20 @@
 # Drill 400
 
-Investment banking interview drills — 426 questions across accounting, valuation,
-DCF, M&A, LBO, restructuring, capital markets and brain teasers.
+Investment banking interview drills — 459 multiple choice questions across
+accounting, valuation, DCF, M&A, LBO, restructuring, capital markets, sectors
+and brain teasers. Every answer comes with an explanation.
 
-One file, no build step, no dependencies. Open `index.html` and start.
+One file, no build step, no dependencies, no accounts. Open `index.html` and start.
 
-**[Live site](https://subhan3110.github.io/Drill400/)** (once GitHub Pages is enabled on this repo)
+**[Live site](https://subhan3110.github.io/Drill400/)**
 
 ---
 
 ## What it does
 
-- **Two question formats.** Multiple choice to check recall, written answers for
-  the questions you would actually have to talk through.
-- **Optional AI grading.** Paste an Anthropic API key and written answers get
-  scored out of 10 with what landed, what was missing, and one delivery tip.
-  Without a key everything still works — you self-mark against the model answer.
+- **Multiple choice only.** Four options, one answer, and an explanation every
+  time — not just why the right answer is right, but usually why the tempting
+  wrong one is wrong.
 - **Spaced repetition, lightly.** Anything you get wrong is saved to *Ones you
   missed*. Getting it right later works the counter back down.
 - **Progress tracking.** Questions seen, running accuracy, day streak, and a
@@ -24,16 +23,14 @@ One file, no build step, no dependencies. Open `index.html` and start.
 - **Challenge a friend.** Finish a set and share a link. They get the same
   questions in the same order and see your score against theirs at the end, then
   can send a result straight back. The whole set is encoded in the URL hash, so
-  there is no server, no account and nothing to host — a 20-question challenge is
-  about 160 characters. Scores are self-reported, so it is for friends, not for a
-  ranked ladder.
+  there is no server and nothing to host — a 20-question challenge is about 160
+  characters. Scores are self-reported, so it is for friends, not a ranked ladder.
 - **Flags.** Mark any question to come back to it, then drill just those.
 - **Resume.** Close the tab mid-set and pick up where you left off.
 - **Review.** At the end of a set, expand any question to re-read the answer.
 - **Light and dark themes**, following your OS by default.
 
-Everything is stored in your browser's `localStorage`. Nothing is sent anywhere
-except, if you turn grading on, your answer to the Anthropic API.
+Everything is stored in your browser's `localStorage`. Nothing is sent anywhere.
 
 ## Running it
 
@@ -42,76 +39,63 @@ open index.html
 ```
 
 That is the whole setup. To host it, push to GitHub and enable Pages on the
-repository — it is a static file.
-
-If you want AI grading, get a key at [console.anthropic.com](https://console.anthropic.com),
-then click *Turn on AI grading of written answers* on the home screen. The key is
-kept in `localStorage` in your browser and is sent only to Anthropic. Because the
-site is static, the call goes directly from the browser, which is why it uses the
-`anthropic-dangerous-direct-browser-access` header. Do not use a key you would
-mind being visible on a shared machine.
+repository — it is a static file. Add it to your phone's home screen and it opens
+fullscreen like an app.
 
 ## The question bank
 
 | Topic | Questions |
 |---|---|
 | Accounting | 69 |
-| Enterprise Value | 44 |
-| Valuation | 54 |
+| Valuation | 53 |
 | DCF | 53 |
 | M&A / Merger Model | 52 |
 | LBO | 51 |
+| Enterprise Value | 44 |
 | Restructuring | 37 |
+| Sectors | 34 |
 | Brain Teasers | 34 |
 | Markets & Capital Markets | 32 |
-| **Total** | **426** |
+| **Total** | **459** |
 
-Split 212 multiple choice / 214 written. By difficulty: 96 easy, 186 medium, 144 hard.
+By difficulty: 97 easy, 205 medium, 157 hard.
+
+The **Sectors** section covers the industry-specific ground that generalist
+question banks tend to skip: SaaS metrics, banks and insurers, healthcare and
+biotech, consumer and retail, real estate and REITs, industrials, and oil and gas.
 
 ## Adding questions
 
-Questions live in the arrays `Q` through `Q15` (there is no `Q13`) in the first `<script>` block of
-`index.html`. Add to any of them, or start a new array and include it in the
-`QUESTIONS` spread.
-
-Multiple choice:
+Questions live in the `BANK` array in the first `<script>` block of `index.html`,
+grouped by category. Add one anywhere in the array:
 
 ```js
-{ c:"acct", l:2, t:"mc",
-  q:"Interest expense increases by $10. Tax rate is 40%. What happens to net income?",
-  o:["Falls by $10","Falls by $6","Falls by $4","No change, interest is non-cash"],
-  a:1,
-  e:"Interest is tax-deductible, so pre-tax income falls $10 and taxes fall $4..." }
-```
-
-Written:
-
-```js
-{ c:"dcf", l:2, t:"open",
-  q:"How do you decide on the length of the explicit forecast period?",
-  m:"The forecast runs until the business reaches a steady state..." }
+{"c":"acct","l":2,"t":"mc",
+ "q":"Interest expense increases by $10. Tax rate is 40%. What happens to net income?",
+ "o":["Falls by $10","Falls by $6","Falls by $4","No change, interest is non-cash"],
+ "a":1,
+ "e":"Interest is tax-deductible, so pre-tax income falls $10 and taxes fall $4..."}
 ```
 
 | Field | Meaning |
 |---|---|
-| `c` | Category key — one of `acct`, `ev`, `val`, `dcf`, `ma`, `lbo`, `restr`, `mkts`, `brain` |
+| `c` | Category key — one of `acct`, `ev`, `val`, `dcf`, `ma`, `lbo`, `restr`, `mkts`, `sect`, `brain` |
 | `l` | Difficulty: `1` easy, `2` medium, `3` hard |
-| `t` | `"mc"` or `"open"` |
+| `t` | Always `"mc"` |
 | `q` | The question |
-| `o` | MC only — exactly four options |
-| `a` | MC only — index of the correct option, `0`–`3` |
-| `e` | MC only — why the answer is right, and ideally why the others are wrong |
-| `m` | Written only — what a strong answer covers. This is also the reference the AI grader marks against, so it pays to be thorough |
+| `o` | Exactly four options |
+| `a` | Index of the correct option, `0`–`3` |
+| `e` | Why the answer is right, and ideally why a tempting wrong one is wrong |
 
-Question ids are hashed from the category and question text, so you can reorder,
-insert or delete questions without invalidating anyone's saved progress.
+Question ids are hashed from the category and question text, so you can reorder
+or insert questions without invalidating saved progress. Deleting questions will
+break any challenge links already shared, since those encode positions.
 
-A few conventions worth keeping: avoid double quotes inside strings, write out
-numbers in prose rather than relying on symbols, and for written answers aim to
-cover not just the correct content but the structure a good candidate would use.
+Conventions worth keeping: avoid double quotes inside strings, write numbers out
+in prose, make the wrong options genuinely plausible rather than obviously wrong,
+and check any arithmetic independently before committing it.
 
 ## Notes
 
-- Stats are keyed per browser. Clearing site data resets progress.
-- Progress from the original version of the app migrates automatically on first
-  load.
+- Progress is per browser. Clearing site data resets it.
+- Progress from earlier versions of the app migrates automatically on first load.
