@@ -1,6 +1,6 @@
 # Drill 400
 
-Investment banking interview drills — 398 questions across accounting, valuation,
+Investment banking interview drills — 426 questions across accounting, valuation,
 DCF, M&A, LBO, restructuring, capital markets and brain teasers.
 
 One file, no build step, no dependencies. Open `index.html` and start.
@@ -49,22 +49,22 @@ mind being visible on a shared machine.
 
 | Topic | Questions |
 |---|---|
-| Accounting | 58 |
-| Enterprise Value | 42 |
-| Valuation | 50 |
-| DCF | 50 |
-| M&A / Merger Model | 50 |
-| LBO | 48 |
-| Restructuring | 36 |
+| Accounting | 69 |
+| Enterprise Value | 44 |
+| Valuation | 54 |
+| DCF | 53 |
+| M&A / Merger Model | 52 |
+| LBO | 51 |
+| Restructuring | 37 |
+| Brain Teasers | 34 |
 | Markets & Capital Markets | 32 |
-| Brain Teasers | 32 |
-| **Total** | **398** |
+| **Total** | **426** |
 
-Split 197 multiple choice / 201 written. By difficulty: 95 easy, 171 medium, 132 hard.
+Split 212 multiple choice / 214 written. By difficulty: 96 easy, 186 medium, 144 hard.
 
 ## Adding questions
 
-Questions live in the arrays `Q` through `Q14` (there is no `Q13`) in the first `<script>` block of
+Questions live in the arrays `Q` through `Q15` (there is no `Q13`) in the first `<script>` block of
 `index.html`. Add to any of them, or start a new array and include it in the
 `QUESTIONS` spread.
 
