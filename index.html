@@ -956,17 +956,16 @@ function renderQuiz() {
   const pct = (S.idx / S.deck.length) * 100;
   let body = "";
 
-  if (q.t === "mc") {
-    body += `<div class="stack">` + q.o.map((o, i) => {
-      let cls = "opt";
-      if (S.picked !== null) cls += i === q.a ? " right" : (i === S.picked ? " wrong" : " dim");
-      return `<button class="${cls}" data-i="${i}" ${S.picked !== null ? "disabled" : ""}>
-        <span class="k">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`;
-    }).join("") + `</div>`;
-    if (S.picked !== null) {
-      const ok = S.picked === q.a;
-      body += `<div class="exp ${ok ? "ok" : "no"}" role="status"><h4>${ok ? "Correct" : "Not quite"}</h4><p>${esc(q.e)}</p></div>`;
-    }
+  body += `<div class="stack">` + q.o.map((o, i) => {
+    let cls = "opt";
+    if (S.picked !== null) cls += i === q.a ? " right" : (i === S.picked ? " wrong" : " dim");
+    return `<button class="${cls}" data-i="${i}" ${S.picked !== null ? "disabled" : ""}>
+      <span class="k">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`;
+  }).join("") + `</div>`;
+
+  if (S.picked !== null) {
+    const ok = S.picked === q.a;
+    body += `<div class="exp ${ok ? "ok" : "no"}" role="status"><h4>${ok ? "Correct" : "Not quite"}</h4><p>${esc(q.e)}</p></div>`;
   }
 
   const done = S.picked !== null;
@@ -1011,12 +1010,11 @@ function renderResult() {
   const review = S.log.map((e, i) => {
     const q = byId[e.id]; if (!q) return "";
     const open = S.openRev === i;
-    const ans = q.t === "mc" ? q.e : q.m;
     return `<div class="item">
       <button class="head" data-rev="${i}" aria-expanded="${open}">
         <span class="mark ${e.correct ? "y" : "n"}">${e.correct ? "✓" : "✗"}</span>
         <span>${esc(q.q)}</span></button>
-      ${open ? `<div class="body"><b>${q.t === "mc" ? esc(q.o[q.a]) : "WHAT A STRONG ANSWER COVERS"}</b>${esc(ans)}</div>` : ""}
+      ${open ? `<div class="body"><b>${esc(q.o[q.a])}</b>${esc(q.e)}</div>` : ""}
     </div>`;
   }).join("");
 
