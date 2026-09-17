@@ -1,7 +1,7 @@
 # Drill 400
 
-Investment banking interview drills — 440 questions across accounting, valuation,
-DCF, M&A, LBO, restructuring, capital markets, fit and brain teasers.
+Investment banking interview drills — 398 questions across accounting, valuation,
+DCF, M&A, LBO, restructuring, capital markets and brain teasers.
 
 One file, no build step, no dependencies. Open `index.html` and start.
 
@@ -24,8 +24,6 @@ One file, no build step, no dependencies. Open `index.html` and start.
 - **Flags.** Mark any question to come back to it, then drill just those.
 - **Resume.** Close the tab mid-set and pick up where you left off.
 - **Review.** At the end of a set, expand any question to re-read the answer.
-- **Keyboard driven.** `1`–`4` or `A`–`D` to answer, `Enter` to continue, `F` to
-  flag, `Cmd/Ctrl+Enter` to grade a written answer.
 - **Light and dark themes**, following your OS by default.
 
 Everything is stored in your browser's `localStorage`. Nothing is sent anywhere
@@ -59,15 +57,14 @@ mind being visible on a shared machine.
 | LBO | 48 |
 | Restructuring | 36 |
 | Markets & Capital Markets | 32 |
-| Fit & Behavioural | 42 |
 | Brain Teasers | 32 |
-| **Total** | **440** |
+| **Total** | **398** |
 
-Split 205 multiple choice / 235 written. By difficulty: 100 easy, 200 medium, 140 hard.
+Split 197 multiple choice / 201 written. By difficulty: 95 easy, 171 medium, 132 hard.
 
 ## Adding questions
 
-Questions live in the arrays `Q` through `Q14` in the first `<script>` block of
+Questions live in the arrays `Q` through `Q14` (there is no `Q13`) in the first `<script>` block of
 `index.html`. Add to any of them, or start a new array and include it in the
 `QUESTIONS` spread.
 
@@ -91,7 +88,7 @@ Written:
 
 | Field | Meaning |
 |---|---|
-| `c` | Category key — one of `acct`, `ev`, `val`, `dcf`, `ma`, `lbo`, `restr`, `mkts`, `fit`, `brain` |
+| `c` | Category key — one of `acct`, `ev`, `val`, `dcf`, `ma`, `lbo`, `restr`, `mkts`, `brain` |
 | `l` | Difficulty: `1` easy, `2` medium, `3` hard |
 | `t` | `"mc"` or `"open"` |
 | `q` | The question |
