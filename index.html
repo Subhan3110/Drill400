@@ -805,7 +805,7 @@ const S = {
   theme: ls.get(K_THEME, null),
   deck: [], idx: 0, log: [], startedAt: 0, openRev: null,
   name: ls.get(K_NAME, ""), chal: null, chalActive: null, shareOpen: false, shareMsg: "",
-  setKey: null, mpOpen: false, mpMsg: "", mpLink: "", invite: null,
+  setKey: null, mpOpen: false, mpMsg: "", mpLink: "", mpRename: false, invite: null,
   picked: null,
 };
 
@@ -856,6 +856,14 @@ function pool() {
 }
 
 /* ================================ HOME ================================ */
+/* Build a fresh set from the current filters and its shareable link. */
+function newInvite() {
+  const pl = pool(); if (!pl.length) return;
+  const deck = shuffle(pl).slice(0, S.len === 0 ? pl.length : Math.min(S.len, pl.length));
+  S.invite = { deck, key: setKey(encodeDeck(deck)) };
+  S.mpLink = makeInviteLink(deck);
+}
+
 function inviteCard() {
   const c = S.chal;
   if (!c) return "";
@@ -952,50 +960,61 @@ function renderHome() {
     </div>
 
     <button class="btn pri" id="start" ${p.length ? "" : "disabled"}>
-      ${p.length ? `Start (${n} question${n === 1 ? "" : "s"})` : "No questions match that combination"}
+      ${!p.length ? "No questions match that combination"
+        : S.invite ? `Start the shared set (${S.invite.deck.length})`
+        : `Start (${n} question${n === 1 ? "" : "s"})`}
     </button>
     ${p.length ? `<div class="note">${p.length} available in this selection</div>` : ""}
 
     ${p.length ? `
       ${S.mpOpen ? `<div class="share" style="margin-top:18px">
-        <p><b>Multiplayer.</b> Send this link to anyone. They get this exact set, same questions, same order — then you can compare scores.</p>
-        <input type="text" id="mpnm" placeholder="Your name" value="${esc(S.name)}" maxlength="18" autocomplete="off"/>
+        <p><b>Send this link.</b> Whoever opens it gets this exact set of ${S.invite ? S.invite.deck.length : 0} — same questions, same order. Press Start to play it yourself.</p>
+        <input type="text" id="mplink" readonly value="${esc(S.mpLink)}"/>
         <div class="row">
-          <button class="btn pri" id="mpsend">${navigator.share ? "Create & share link" : "Create & copy link"}</button>
+          <button class="btn pri" id="mpcopy">${S.mpMsg || "Copy link"}</button>
+          ${navigator.share ? `<button class="btn" id="mpshare">Share</button>` : ""}
           <button class="btn" id="mpclose">Close</button>
         </div>
-        ${S.mpMsg ? `<p style="margin:10px 0 0;color:var(--brass)">${esc(S.mpMsg)}</p>` : ""}
-        ${S.mpLink ? `<input type="text" id="mplink" readonly value="${esc(S.mpLink)}" style="margin-top:10px"/>` : ""}
+        <p style="margin:12px 0 0;font-size:12px;color:var(--faint)">Sent as ${esc(S.name || "Your friend")}. <button class="linkbtn" id="mprename">Change name</button></p>
+        ${S.mpRename ? `<input type="text" id="mpnm" placeholder="Your name" value="${esc(S.name)}" maxlength="18" autocomplete="off" style="margin-top:10px"/>` : ""}
       </div>` : `<button class="btn" id="multiplayer" style="margin-top:10px">Multiplayer</button>`}
     ` : ""}
 `;
 
-  document.querySelectorAll("#home .topic").forEach(b => b.onclick = () => { S.cat = b.dataset.cat; renderHome(); });
+  /* A pending invite belongs to the filters it was built from, so changing
+     them drops it rather than leaving a stale link on screen. */
+  const clearInvite = () => { S.invite = null; S.mpOpen = false; S.mpLink = ""; S.mpRename = false; };
+  document.querySelectorAll("#home .topic").forEach(b => b.onclick = () => { S.cat = b.dataset.cat; clearInvite(); renderHome(); });
   document.querySelectorAll("#home .seg").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = () => {
-    S[g.dataset.seg] = Number(b.dataset.v); renderHome();
+    S[g.dataset.seg] = Number(b.dataset.v); clearInvite(); renderHome();
   }));
   const stB = document.getElementById("start"); if (stB) stB.onclick = () => start();
   const mp = document.getElementById("multiplayer");
-  if (mp) mp.onclick = () => { S.mpOpen = true; S.mpMsg = ""; S.mpLink = ""; renderHome(); };
+  if (mp) mp.onclick = () => { newInvite(); S.mpOpen = true; S.mpMsg = ""; renderHome(); };
   const mpc = document.getElementById("mpclose");
-  if (mpc) mpc.onclick = () => { S.mpOpen = false; S.mpLink = ""; renderHome(); };
-  const mps = document.getElementById("mpsend");
-  if (mps) mps.onclick = async () => {
-    S.name = (document.getElementById("mpnm").value || "").trim().slice(0, 18);
-    ls.set(K_NAME, S.name);
-    const pl = pool(); if (!pl.length) return;
-    const deck = shuffle(pl).slice(0, S.len === 0 ? pl.length : Math.min(S.len, pl.length));
-    const url = makeInviteLink(deck);
-    S.invite = { deck, key: setKey(encodeDeck(deck)) };
-    const text = `${S.name || "Someone"} sent you a Drill 400 set — ${deck.length} questions. Same ones for both of us.`;
-    try {
-      if (navigator.share) { await navigator.share({ title: "Drill 400", text, url }); S.mpMsg = "Link sent. Play the same set below."; }
-      else { await navigator.clipboard.writeText(url); S.mpMsg = "Link copied. Send it, then play the same set below."; }
-    } catch (e) {
-      if (e && e.name === "AbortError") return;
-      S.mpMsg = "Copy this link:"; S.mpLink = url;
-    }
-    renderHome();
+  if (mpc) mpc.onclick = () => { S.mpOpen = false; S.mpRename = false; renderHome(); };
+  const lnk = document.getElementById("mplink");
+  if (lnk) lnk.onclick = () => lnk.select();
+  const cp = document.getElementById("mpcopy");
+  if (cp) cp.onclick = async () => {
+    try { await navigator.clipboard.writeText(S.mpLink); }
+    catch { const el = document.getElementById("mplink"); el.select(); try { document.execCommand("copy"); } catch {} }
+    S.mpMsg = "Copied"; renderHome();
+    setTimeout(() => { if (S.mpMsg === "Copied") { S.mpMsg = ""; renderHome(); } }, 1600);
+  };
+  const sh = document.getElementById("mpshare");
+  if (sh) sh.onclick = async () => {
+    try { await navigator.share({ title: "Drill 400", text: `${S.name || "Someone"} sent you a set of ${S.invite.deck.length}.`, url: S.mpLink }); } catch {}
+  };
+  const rn = document.getElementById("mprename");
+  if (rn) rn.onclick = () => { S.mpRename = !S.mpRename; renderHome(); setTimeout(() => { const f = document.getElementById("mpnm"); if (f) f.focus(); }, 0); };
+  const nm = document.getElementById("mpnm");
+  if (nm) nm.oninput = () => {
+    S.name = nm.value.trim().slice(0, 18); ls.set(K_NAME, S.name);
+    S.mpLink = makeInviteLink(S.invite.deck);          // name is inside the link
+    const l = document.getElementById("mplink"); if (l) l.value = S.mpLink;
+    const tag = document.querySelector("#home .share p:last-of-type");
+    if (tag) tag.childNodes[0].nodeValue = "Sent as " + (S.name || "Your friend") + ". ";
   };
   document.getElementById("theme").onclick = toggleTheme;
   const ac = document.getElementById("acceptchal"); if (ac) ac.onclick = startChallenge;

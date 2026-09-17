@@ -20,11 +20,12 @@ One file, no build step, no dependencies, no accounts. Open `index.html` and sta
 - **Progress tracking.** Questions seen, running accuracy, day streak, and a
   mastery bar per topic. A question counts as mastered once you have seen it and
   have no outstanding wrong answers on it.
-- **Multiplayer.** Pick a topic and length, press *Multiplayer*, and send the
-  link. Whoever opens it gets that exact set — same questions, same order. Both
-  play on your own time, then send your result back and the app shows the
-  head-to-head. If you have already played the set, a result link arriving back
-  shows the comparison immediately without replaying.
+- **Multiplayer.** Pick a topic and length, press *Multiplayer*, and the link is
+  there with a copy button — one press, no other steps. Whoever opens it gets
+  that exact set, same questions in the same order. Both play on your own time,
+  then send your result back and the app shows the head-to-head. If you have
+  already played the set, a result link arriving back shows the comparison
+  immediately without replaying.
 
   The whole set is encoded in the URL hash, so there is no server, no account
   and nothing to host — a 20-question invite is about 110 characters. Scores are
