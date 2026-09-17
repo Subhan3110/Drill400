@@ -5,32 +5,32 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="theme-color" content="#0D1512"/>
+<meta name="theme-color" content="#12100F"/>
 <meta name="description" content="Investment banking interview drills: accounting, valuation, DCF, M&amp;A, LBO, restructuring, capital markets and sector questions."/>
 <title>Drill 400</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D1512'/%3E%3Cpath d='M7 7h18l-3 5H10z' fill='%238A6F3C'/%3E%3Cpath d='M11 14h10l-2 5h-6z' fill='%23A8874A'/%3E%3Cpath d='M13.5 21h5l-2.5 6z' fill='%23C6A15B'/%3E%3C/svg%3E"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312100F'/%3E%3Cpath d='M7 7h18l-3 5H10z' fill='%238E4034'/%3E%3Cpath d='M11 14h10l-2 5h-6z' fill='%23A9503F'/%3E%3Cpath d='M13.5 21h5l-2.5 6z' fill='%23CB6653'/%3E%3C/svg%3E"/>
 <style>
 :root{
---bg:#0D1512;--surf:#14201C;--surf2:#1B2A25;
---line:#26382F;--line2:#334A40;
---text:#E9E6DB;--muted:#8A9A92;--faint:#5A6B63;
---brass:#C6A15B;--brassDim:#8A6F3C;--brassBg:rgba(198,161,91,.10);
---good:#6FB894;--goodBg:rgba(111,184,148,.12);
---bad:#CB7358;--badBg:rgba(203,115,88,.12);
---onBrass:#12190F;
---shadow:0 1px 2px rgba(0,0,0,.30);
+--bg:#12100F;--surf:#1A1817;--surf2:#232120;
+--line:#2F2B29;--line2:#453F3B;
+--text:#EDE8E2;--muted:#9C948C;--faint:#6E665F;
+--accent:#CB6653;--accentDim:#8E4034;--accentBg:rgba(203,102,83,.12);
+--good:#6FAE8C;--goodBg:rgba(111,174,140,.12);
+--bad:#E0836B;--badBg:rgba(224,131,107,.12);
+--onAccent:#140E0C;
+--shadow:0 1px 2px rgba(0,0,0,.34);
 --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
 --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 :root[data-theme="light"]{
---bg:#F4F1E9;--surf:#FFFFFF;--surf2:#EDE8DC;
---line:#DCD5C5;--line2:#C4BAA4;
---text:#1A211E;--muted:#55635C;--faint:#6E7A74;
---brass:#8A6A2E;--brassDim:#B79A5F;--brassBg:rgba(138,106,46,.09);
+--bg:#F6F3EE;--surf:#FFFFFF;--surf2:#EDE8E0;
+--line:#DCD5CB;--line2:#C3B9AC;
+--text:#1A1614;--muted:#57504A;--faint:#6B635C;
+--accent:#8E3327;--accentDim:#C08479;--accentBg:rgba(142,51,39,.08);
 --good:#2E7D5B;--goodBg:rgba(46,125,91,.10);
---bad:#A8452A;--badBg:rgba(168,69,42,.10);
---onBrass:#FFFFFF;
---shadow:0 1px 2px rgba(26,33,30,.06);
+--bad:#B4502E;--badBg:rgba(180,80,46,.10);
+--onAccent:#FFFFFF;
+--shadow:0 1px 2px rgba(26,22,20,.07);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
@@ -42,7 +42,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16
 @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
-button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -51,7 +51,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .brand{display:flex;align-items:center;gap:13px}
 .brand svg{flex-shrink:0;display:block}
 .wordmark{font-family:var(--serif);font-size:37px;line-height:1;letter-spacing:-.6px}
-.wordmark i{font-style:normal;color:var(--brass);margin-left:9px;letter-spacing:.5px}
+.wordmark i{font-style:normal;color:var(--accent);margin-left:9px;letter-spacing:.5px}
 .lede{font-size:14px;color:var(--muted);line-height:1.55;max-width:52ch}
 header{margin-bottom:26px}
 .icobtn{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--muted);
@@ -77,36 +77,36 @@ header{margin-bottom:26px}
 .topic{padding:15px 17px 13px;display:block;text-align:left;width:100%;
   background:var(--surf);border:1px solid var(--line);border-radius:14px;transition:background .12s,border-color .12s}
 .topic:hover{border-color:var(--line2)}
-.topic.sel{background:var(--brassBg);border-color:var(--brassDim)}
+.topic.sel{background:var(--accentBg);border-color:var(--accentDim)}
 .topic-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .topic-n{display:block;font-family:var(--serif);font-size:18px;line-height:1.25}
-.topic.sel .topic-n{color:var(--brass)}
+.topic.sel .topic-n{color:var(--accent)}
 .topic-d{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
 .topic-c{font-size:12px;color:var(--faint);flex-shrink:0;padding-top:4px;font-variant-numeric:tabular-nums}
 .mast{display:block;height:3px;background:var(--line);border-radius:3px;margin-top:11px;overflow:hidden}
-.mast i{display:block;height:100%;background:var(--brassDim);border-radius:3px;transition:width .4s ease}
-.topic.sel .mast i{background:var(--brass)}
+.mast i{display:block;height:100%;background:var(--accentDim);border-radius:3px;transition:width .4s ease}
+.topic.sel .mast i{background:var(--accent)}
 
 .seg{display:flex;gap:6px;flex-wrap:wrap}
 .seg button{flex:1 1 0;min-width:64px;padding:10px 12px;border-radius:9px;font-size:13px;font-weight:450;
   color:var(--muted);border:1px solid var(--line);transition:.12s;background:var(--surf)}
 .seg button:hover{border-color:var(--line2);color:var(--text)}
-.seg button.sel{background:var(--brassBg);color:var(--brass);border-color:var(--brassDim);font-weight:600}
+.seg button.sel{background:var(--accentBg);color:var(--accent);border-color:var(--accentDim);font-weight:600}
 
 .btn{width:100%;padding:15px 18px;border-radius:11px;font-size:15px;font-weight:600;letter-spacing:.2px;
   border:1px solid var(--line2);color:var(--text);background:var(--surf);transition:.12s}
-.btn:hover{border-color:var(--brassDim)}
-.btn.pri{background:var(--brass);color:var(--onBrass);border-color:var(--brass);box-shadow:var(--shadow)}
-.btn.pri:hover{filter:brightness(1.06);border-color:var(--brass)}
+.btn:hover{border-color:var(--accentDim)}
+.btn.pri{background:var(--text);color:var(--bg);border-color:var(--text);box-shadow:var(--shadow)}
+.btn.pri:hover{filter:brightness(.94);border-color:var(--text)}
 .btn[disabled]{opacity:.35;cursor:default;filter:none}
 .row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1 1 140px;width:auto}
 
 /* ------------------------------- quiz ------------------------------- */
 .bar{height:2px;background:var(--line);border-radius:2px;margin-bottom:24px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--brass);transition:width .3s ease}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .3s ease}
 .chips{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
 .chip{font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:20px}
-.chip.acc{color:var(--brass);background:var(--brassBg);border-color:var(--brassDim);font-weight:600}
+.chip.acc{color:var(--text);background:var(--surf2);border-color:var(--line2);font-weight:600}
 .qtext{font-family:var(--serif);font-size:23px;line-height:1.38;margin-bottom:24px}
 @media(max-width:400px){.wordmark{font-size:30px}.qtext{font-size:20px}.brand{gap:11px}}
 
@@ -151,13 +151,13 @@ header{margin-bottom:26px}
 .rev .body b{display:block;color:var(--text);font-weight:600;font-size:12px;margin-bottom:6px;letter-spacing:.2px}
 
 .note{text-align:center;font-size:12px;color:var(--faint);margin-top:14px;line-height:1.6}
-.linkbtn{font-size:13px;color:var(--brass);text-decoration:underline;text-underline-offset:3px;padding:0}
+.linkbtn{font-size:13px;color:var(--accent);text-decoration:underline;text-underline-offset:3px;padding:0}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:13px;color:var(--muted)}
 .topbar .mid{display:flex;align-items:center;gap:12px;font-variant-numeric:tabular-nums}
 .flagbtn{font-size:12px;color:var(--faint);padding:4px 9px;border:1px solid var(--line);border-radius:20px;transition:.12s}
 .flagbtn:hover{color:var(--text);border-color:var(--line2)}
-.flagbtn.on{color:var(--brass);border-color:var(--brassDim);background:var(--brassBg);font-weight:600}
-.resume{padding:15px 17px;margin-bottom:22px;border:1px solid var(--brassDim);background:var(--brassBg);border-radius:14px}
+.flagbtn.on{color:var(--accent);border-color:var(--accentDim);background:var(--accentBg);font-weight:600}
+.resume{padding:15px 17px;margin-bottom:22px;border:1px solid var(--accentDim);background:var(--accentBg);border-radius:14px}
 .vs{display:flex;align-items:stretch;gap:9px;margin-bottom:16px}
 .vs .side{flex:1;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center}
 .vs .side.win{border-color:var(--good);background:var(--goodBg)}
@@ -700,9 +700,9 @@ const K_STATS = "ib400-stats-v2", K_OLDSTATS = "ib400-stats-v1",
 
 const LOGO = `<svg width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Drill 400">
   <rect x=".75" y=".75" width="46.5" height="46.5" rx="11.5" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.5"/>
-  <path d="M12 13h24l-4 6.4H16z" fill="var(--brassDim)"/>
-  <path d="M17.4 21.6h13.2l-3 6H20.4z" fill="#A8874A"/>
-  <path d="M21.6 29.8h4.8L24 37z" fill="var(--brass)"/>
+  <path d="M12 13h24l-4 6.4H16z" fill="var(--accentDim)"/>
+  <path d="M17.4 21.6h13.2l-3 6H20.4z" fill="#A9503F"/>
+  <path d="M21.6 29.8h4.8L24 37z" fill="var(--accent)"/>
 </svg>`;
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -814,7 +814,7 @@ function applyTheme() {
   const t = S.theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   document.documentElement.setAttribute("data-theme", t);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", t === "light" ? "#F4F1E9" : "#0D1512");
+  if (meta) meta.setAttribute("content", t === "light" ? "#F6F3EE" : "#12100F");
   return t;
 }
 function toggleTheme() { S.theme = applyTheme() === "light" ? "dark" : "light"; ls.set(K_THEME, S.theme); applyTheme(); renderHome(); }
@@ -885,7 +885,7 @@ function inviteCard() {
         <div class="sep">vs</div>
         <div class="side ${!iWin && !tie ? "win" : ""}"><b>${c.right}/${c.total}</b><small>${esc(c.name.toUpperCase())}</small></div>
       </div>
-      <div class="verdictline" style="margin:4px 0 14px;color:var(--${iWin ? "good" : tie ? "brass" : "bad"})">
+      <div class="verdictline" style="margin:4px 0 14px;color:var(--${iWin ? "good" : tie ? "accent" : "bad"})">
         ${iWin ? "You win." : tie ? "Dead heat." : esc(c.name) + " takes it."}
       </div>
       <button class="btn" id="skipchal">Done</button>
@@ -938,8 +938,8 @@ function renderHome() {
 
     <div class="tiles">
       <div class="tile"><b>${seen}</b><small>SEEN</small></div>
-      <div class="tile"><b style="color:var(--${acc >= 70 ? "good" : acc >= 50 ? "brass" : seen ? "bad" : "faint"})">${seen ? acc + "%" : "–"}</b><small>ACCURACY</small></div>
-      <div class="tile"><b style="color:var(--${st ? "brass" : "faint"})">${st}</b><small>DAY STREAK</small></div>
+      <div class="tile"><b style="color:var(--${acc >= 70 ? "good" : acc >= 50 ? "accent" : seen ? "bad" : "faint"})">${seen ? acc + "%" : "–"}</b><small>ACCURACY</small></div>
+      <div class="tile"><b style="color:var(--${st ? "accent" : "faint"})">${st}</b><small>DAY STREAK</small></div>
       <div class="tile"><b>${mast}</b><small>MASTERED</small></div>
     </div>
 
@@ -1130,7 +1130,7 @@ function pick(i) {
 function renderResult() {
   const right = S.log.filter(e => e.correct).length;
   const pct = S.log.length ? Math.round(right / S.log.length * 100) : 0;
-  const col = pct >= 70 ? "good" : pct >= 50 ? "brass" : "bad";
+  const col = pct >= 70 ? "good" : pct >= 50 ? "accent" : "bad";
   const by = {};
   S.log.forEach(e => { (by[e.cat] = by[e.cat] || { r: 0, t: 0 }).t++; if (e.correct) by[e.cat].r++; });
   const rows = Object.entries(by).sort((a, b) => a[1].r / a[1].t - b[1].r / b[1].t);
@@ -1159,7 +1159,7 @@ function renderResult() {
         <div class="sep">vs</div>
         <div class="side ${!iWin && !tie ? "win" : ""}"><b>${ca.right}/${ca.total}</b><small>${esc(ca.name.toUpperCase())}</small></div>
       </div>
-      <div class="verdictline" style="color:var(--${iWin ? "good" : tie ? "brass" : "bad"})">
+      <div class="verdictline" style="color:var(--${iWin ? "good" : tie ? "accent" : "bad"})">
         ${iWin ? "You win." : tie ? "Dead heat." : esc(ca.name) + " takes it."}
       </div>`;
   }
@@ -1169,7 +1169,7 @@ function renderResult() {
     <div class="bigscore"><b style="color:var(--${col})">${pct}%</b>
       <small>${right} of ${S.log.length} answered well${elapsed ? ` &middot; ${fmtTime(elapsed)} &middot; ${perQ}s per question` : ""}</small></div>
     ${rows.length > 1 ? `<div class="label">By topic</div><div class="card brk">${rows.map(([k, v]) => {
-      const r = v.r / v.t, c = r >= .7 ? "good" : r >= .5 ? "brass" : "bad";
+      const r = v.r / v.t, c = r >= .7 ? "good" : r >= .5 ? "accent" : "bad";
       return `<div class="r"><span style="font-size:14px">${esc(CATNAME[k])}</span>
         <span style="display:flex;align-items:center;gap:12px">
           <span class="meter"><i style="width:${r * 100}%;background:var(--${c})"></i></span>
@@ -1184,7 +1184,7 @@ function renderResult() {
         <input type="text" id="nm" placeholder="Your name" value="${esc(S.name)}" maxlength="18" autocomplete="off"/>
         <div class="row"><button class="btn pri" id="dosend">${navigator.share ? "Share link" : "Copy link"}</button>
           <button class="btn" id="closeshare">Close</button></div>
-        ${S.shareMsg ? `<p style="margin:10px 0 0;color:var(--brass)">${esc(S.shareMsg)}</p>` : ""}
+        ${S.shareMsg ? `<p style="margin:10px 0 0;color:var(--accent)">${esc(S.shareMsg)}</p>` : ""}
       </div>` : `<button class="btn" id="openshare" style="margin-bottom:9px">${ca ? "Send your result back" : "Challenge a friend"}</button>`}
     ` : ""}
 
