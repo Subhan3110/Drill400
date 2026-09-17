@@ -174,6 +174,16 @@ input[type=password],input[type=text]{width:100%;background:var(--surf2);border:
 .flagbtn:hover{color:var(--text);border-color:var(--line2)}
 .flagbtn.on{color:var(--brass);border-color:var(--brassDim);background:var(--brassBg);font-weight:600}
 .resume{padding:15px 17px;margin-bottom:22px;border:1px solid var(--brassDim);background:var(--brassBg);border-radius:14px}
+.vs{display:flex;align-items:stretch;gap:9px;margin-bottom:16px}
+.vs .side{flex:1;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center}
+.vs .side.win{border-color:var(--good);background:var(--goodBg)}
+.vs .side b{display:block;font-family:var(--serif);font-size:26px;line-height:1.1}
+.vs .side small{display:block;font-size:11px;color:var(--faint);margin-top:5px;letter-spacing:.2px}
+.vs .sep{flex:0 0 auto;display:flex;align-items:center;font-size:12px;color:var(--faint)}
+.verdictline{text-align:center;font-family:var(--serif);font-size:20px;line-height:1.4;margin-bottom:22px}
+.share{padding:15px 17px;margin-bottom:18px;border:1px solid var(--line);background:var(--surf);border-radius:14px}
+.share p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.share input{margin-bottom:10px}
 .resume p{font-size:13.5px;line-height:1.5;margin-bottom:12px}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(128,128,128,.35);border-top-color:currentColor;
   border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px;margin-right:7px}
@@ -723,7 +733,7 @@ const CATNAME = Object.fromEntries(CATS.map(c => [c.k, c.n]));
 const LVLNAME = { 1:"Easy", 2:"Medium", 3:"Hard" };
 const K_STATS = "ib400-stats-v2", K_OLDSTATS = "ib400-stats-v1", K_KEY = "ib400-api-key",
       K_FLAGS = "ib400-flags-v1", K_DAYS = "ib400-days-v1", K_THEME = "ib400-theme",
-      K_RESUME = "ib400-resume-v1", K_MODEL = "claude-sonnet-5";
+      K_RESUME = "ib400-resume-v1", K_NAME = "ib400-name", K_MODEL = "claude-sonnet-5";
 
 const LOGO = `<svg width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Drill 400">
   <rect x=".75" y=".75" width="46.5" height="46.5" rx="11.5" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.5"/>
@@ -741,6 +751,33 @@ const ls = {
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const today = () => new Date().toISOString().slice(0, 10);
 const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const byOrd = Object.fromEntries(QUESTIONS.map(q => [q.ord, q]));
+
+/* ---------------------------- challenges ----------------------------
+   A challenge is a whole set encoded into the URL hash: the sender's name,
+   their score, and the exact question list. No server involved — the link
+   carries everything the other phone needs to play the identical set. */
+const b36 = n => n.toString(36).padStart(3, "0");
+function makeChallengeLink() {
+  const ords = S.log.map(e => byId[e.id]).filter(Boolean).map(q => b36(q.ord)).join("");
+  const right = S.log.filter(e => e.correct).length;
+  const payload = [S.name || "", right, S.log.length, ords].join("~");
+  return location.href.split("#")[0] + "#c=" + encodeURIComponent(payload);
+}
+function readChallenge() {
+  const m = /^#c=(.+)$/.exec(location.hash);
+  if (!m) return null;
+  try {
+    const [name, right, total, ords] = decodeURIComponent(m[1]).split("~");
+    const deck = [];
+    for (let i = 0; i + 3 <= ords.length; i += 3) {
+      const q = byOrd[parseInt(ords.slice(i, i + 3), 36)];
+      if (q) deck.push(q);
+    }
+    if (!deck.length) return null;
+    return { name: (name || "").trim() || "Your friend", right: +right || 0, total: +total || deck.length, deck };
+  } catch { return null; }
+}
 
 /* Stats used to be keyed by array index. Ids are now hashed from the question
    text, so migrate once using the original ordering held in `ord`. */
@@ -765,6 +802,7 @@ const S = {
   flags: new Set(ls.get(K_FLAGS, [])),
   theme: ls.get(K_THEME, null),
   deck: [], idx: 0, log: [], startedAt: 0, openRev: null,
+  name: ls.get(K_NAME, ""), chal: null, chalActive: null, shareOpen: false, shareMsg: "",
   picked: null, typed: "", revealed: false, fb: null, fbLoading: false, fbErr: null,
 };
 
@@ -847,6 +885,11 @@ function renderHome() {
       <div class="lede">${QUESTIONS.length} investment banking interview questions. Multiple choice to check recall, written answers graded on substance.</div>
     </header>
 
+    ${S.chal ? `<div class="resume">
+      <p><b>${esc(S.chal.name)} challenged you.</b> ${S.chal.right} of ${S.chal.total} on this set of ${S.chal.deck.length}. Same questions, same order.</p>
+      <div class="row"><button class="btn pri" id="acceptchal">Take the challenge</button><button class="btn" id="skipchal">Not now</button></div>
+    </div>` : ""}
+
     ${saved ? `<div class="resume">
       <p><b>Unfinished set.</b> You were ${saved.idx + 1} of ${saved.deck.length} through ${esc(saved.catName)}.</p>
       <div class="row"><button class="btn pri" id="resume">Resume</button><button class="btn" id="discard">Discard</button></div>
@@ -903,6 +946,9 @@ function renderHome() {
   }));
   const stB = document.getElementById("start"); if (stB) stB.onclick = () => start();
   document.getElementById("theme").onclick = toggleTheme;
+  const ac = document.getElementById("acceptchal"); if (ac) ac.onclick = startChallenge;
+  const sc = document.getElementById("skipchal");
+  if (sc) sc.onclick = () => { S.chal = null; try { history.replaceState(null, "", location.pathname + location.search); } catch {} renderHome(); };
   const rs = document.getElementById("resume"); if (rs) rs.onclick = resume;
   const ds = document.getElementById("discard"); if (ds) ds.onclick = () => { ls.del(K_RESUME); renderHome(); };
   document.getElementById("keytoggle").onclick = () => { S.keyOpen = !S.keyOpen; renderHome(); };
@@ -919,11 +965,20 @@ function renderHome() {
 function start() {
   const p = pool(); if (!p.length) return;
   S.deck = shuffle(p).slice(0, S.len === 0 ? p.length : Math.min(S.len, p.length));
-  S.idx = 0; S.log = []; S.startedAt = Date.now(); resetQ(); saveResume(); show("quiz"); renderQuiz();
+  S.idx = 0; S.log = []; S.chalActive = null; S.startedAt = Date.now();
+  resetQ(); saveResume(); show("quiz"); renderQuiz();
+}
+function startChallenge() {
+  const c = S.chal; if (!c) return;
+  S.deck = c.deck; S.idx = 0; S.log = [];
+  S.chalActive = { name: c.name, right: c.right, total: c.total };
+  S.startedAt = Date.now(); S.chal = null;
+  try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+  resetQ(); saveResume(); show("quiz"); renderQuiz();
 }
 function saveResume() {
   if (S.idx >= S.deck.length) { ls.del(K_RESUME); return; }
-  ls.set(K_RESUME, { deck: S.deck.map(q => q.id), idx: S.idx, log: S.log, startedAt: S.startedAt,
+  ls.set(K_RESUME, { deck: S.deck.map(q => q.id), idx: S.idx, log: S.log, startedAt: S.startedAt, chal: S.chalActive,
                      catName: S.cat === "all" ? "Everything" : S.cat === "weak" ? "Ones you missed"
                             : S.cat === "flag" ? "Flagged" : CATNAME[S.cat] || "a set" });
 }
@@ -931,7 +986,7 @@ function resume() {
   const r = ls.get(K_RESUME, null); if (!r) return;
   const deck = r.deck.map(id => byId[id]).filter(Boolean);
   if (!deck.length) { ls.del(K_RESUME); renderHome(); return; }
-  S.deck = deck; S.idx = Math.min(r.idx, deck.length - 1); S.log = r.log || [];
+  S.deck = deck; S.idx = Math.min(r.idx, deck.length - 1); S.log = r.log || []; S.chalActive = r.chal || null;
   S.startedAt = r.startedAt || Date.now();
   resetQ(); show("quiz"); renderQuiz();
 }
@@ -1109,7 +1164,23 @@ function renderResult() {
     </div>`;
   }).join("");
 
+  const ca = S.chalActive;
+  let vs = "";
+  if (ca) {
+    const theirs = ca.total ? Math.round(ca.right / ca.total * 100) : 0;
+    const iWin = pct > theirs, tie = pct === theirs;
+    vs = `<div class="vs">
+        <div class="side ${iWin ? "win" : ""}"><b>${right}/${S.log.length}</b><small>YOU</small></div>
+        <div class="sep">vs</div>
+        <div class="side ${!iWin && !tie ? "win" : ""}"><b>${ca.right}/${ca.total}</b><small>${esc(ca.name.toUpperCase())}</small></div>
+      </div>
+      <div class="verdictline" style="color:var(--${iWin ? "good" : tie ? "brass" : "bad"})">
+        ${iWin ? "You win." : tie ? "Dead heat." : esc(ca.name) + " takes it."}
+      </div>`;
+  }
+
   document.getElementById("result").innerHTML = `
+    ${vs}
     <div class="bigscore"><b style="color:var(--${col})">${pct}%</b>
       <small>${right} of ${S.log.length} answered well${elapsed ? ` &middot; ${fmtTime(elapsed)} &middot; ${perQ}s per question` : ""}</small></div>
     ${rows.length > 1 ? `<div class="label">By topic</div><div class="card brk">${rows.map(([k, v]) => {
@@ -1122,6 +1193,16 @@ function renderResult() {
 
     ${S.log.length ? `<div class="label">Review <b>tap to expand</b></div><div class="rev">${review}</div>` : ""}
 
+    ${S.log.length ? `
+      ${S.shareOpen ? `<div class="share">
+        <p>${ca ? "Send the result back" : "Send this exact set to a friend"} — they get the same questions in the same order, and see your score at the end.</p>
+        <input type="text" id="nm" placeholder="Your name" value="${esc(S.name)}" maxlength="18" autocomplete="off"/>
+        <div class="row"><button class="btn pri" id="dosend">${navigator.share ? "Share link" : "Copy link"}</button>
+          <button class="btn" id="closeshare">Close</button></div>
+        ${S.shareMsg ? `<p style="margin:10px 0 0;color:var(--brass)">${esc(S.shareMsg)}</p>` : ""}
+      </div>` : `<button class="btn" id="openshare" style="margin-bottom:9px">${ca ? "Send your result back" : "Challenge a friend"}</button>`}
+    ` : ""}
+
     <div class="stack group" style="margin-bottom:0"><button class="btn pri" id="again">Run another set</button>
       <button class="btn" id="home2">Change topic</button></div>
     <div class="note">Everything you got wrong is saved under &ldquo;Ones you missed&rdquo; on the home screen.</div>`;
@@ -1129,11 +1210,41 @@ function renderResult() {
   document.querySelectorAll("#result .head").forEach(b => b.onclick = () => {
     const i = Number(b.dataset.rev); S.openRev = S.openRev === i ? null : i; renderResult();
   });
-  document.getElementById("again").onclick = () => { S.openRev = null; start(); window.scrollTo(0, 0); };
-  document.getElementById("home2").onclick = () => { S.openRev = null; show("home"); renderHome(); window.scrollTo(0, 0); };
+  const os = document.getElementById("openshare");
+  if (os) os.onclick = () => { S.shareOpen = true; S.shareMsg = ""; renderResult(); };
+  const cs = document.getElementById("closeshare");
+  if (cs) cs.onclick = () => { S.shareOpen = false; renderResult(); };
+  const ds = document.getElementById("dosend");
+  if (ds) ds.onclick = async () => {
+    S.name = (document.getElementById("nm").value || "").trim().slice(0, 18);
+    ls.set(K_NAME, S.name);
+    const url = makeChallengeLink();
+    const text = `${S.name || "I"} scored ${right}/${S.log.length} on Drill 400. Same questions, your turn.`;
+    try {
+      if (navigator.share) { await navigator.share({ title: "Drill 400", text, url }); return; }
+      await navigator.clipboard.writeText(url);
+      S.shareMsg = "Link copied. Paste it to them.";
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      S.shareMsg = url;
+    }
+    renderResult();
+  };
+  document.getElementById("again").onclick = () => { S.openRev = null; S.shareOpen = false; start(); window.scrollTo(0, 0); };
+  document.getElementById("home2").onclick = () => { S.openRev = null; S.shareOpen = false; show("home"); renderHome(); window.scrollTo(0, 0); };
 }
 
+/* A challenge link tapped while the app is already open changes only the hash,
+   which does not reload the page — so pick it up explicitly. */
+window.addEventListener("hashchange", () => {
+  const c = readChallenge();
+  if (!c) return;
+  S.chal = c; S.shareOpen = false;
+  show("home"); renderHome(); window.scrollTo(0, 0);
+});
+
 applyTheme();
+S.chal = readChallenge();
 renderHome();
 
 </script>
